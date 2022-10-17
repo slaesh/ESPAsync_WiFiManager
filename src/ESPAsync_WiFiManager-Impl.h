@@ -911,6 +911,8 @@ bool ESPAsync_WiFiManager::startConfigPortal(char const *apName, char const *apP
 
     if (stopConfigPortal)
     {
+      TimedOut = false;
+
       LOGERROR("Stop ConfigPortal");
 
       stopConfigPortal = false;
