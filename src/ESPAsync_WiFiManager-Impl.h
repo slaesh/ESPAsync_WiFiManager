@@ -851,7 +851,10 @@ bool ESPAsync_WiFiManager::startConfigPortal(char const *apName, char const *apP
       wifi_station_disconnect ();
       ETS_UART_INTR_ENABLE ();
 #else
-      WiFi.disconnect (false);
+      // if we are connected properly, there is no need to call disconnect!
+      if (WiFi.status() != WL_CONNECTED) {
+        WiFi.disconnect (false);
+      }
 #endif
 
       scan();
