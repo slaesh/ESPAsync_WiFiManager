@@ -491,7 +491,7 @@ bool ESPAsync_WiFiManager::autoConnect(char const *apName, char const *apPasswor
     {
       float waited = (millis() - startedAt);
 
-      LOGWARN1(F("Connected after waiting (s) :"), waited / 1000);
+      LOGWARN1(F("A: Connected after waiting (s) :"), waited / 1000);
       LOGWARN1(F("Local ip ="), WiFi.localIP());
 
       return true;
@@ -604,8 +604,10 @@ void ESPAsync_WiFiManager::scan()
       if (wifiSSIDscan)
       {
         /* WE SHOULD MOVE THIS IN PLACE ATOMICALLY */
-        if (wifiSSIDs)
+        if (wifiSSIDs) {
+          Serial.println("deleting wifiSSIDs");
           delete [] wifiSSIDs;
+        }
 
         wifiSSIDs     = new WiFiResult[n];
         wifiSSIDCount = n;
@@ -802,9 +804,31 @@ bool ESPAsync_WiFiManager::startConfigPortal()
 
 //////////////////////////////////////////
 
+
+const boolean   ESPAsync_WiFiManager::scannedSSIDSContains(String &ssid){
+
+  auto p_ssid = wifiSSIDs;
+  for (uint8_t i = 0; p_ssid != NULL && i < wifiSSIDCount; ++i) {
+    if (p_ssid->SSID == ssid) {
+      return true;
+    }
+
+    ++p_ssid;
+  }
+
+  return false;
+}
+
 bool ESPAsync_WiFiManager::startConfigPortal(char const *apName, char const *apPassword)
 {
   WiFi.mode(WIFI_AP_STA);
+
+// NEU
+  wifiSSIDCount = 0;
+  wifiSSIDs = NULL;
+  _ssid=getStoredWiFiSSID();
+  _pass=getStoredWiFiPass();
+// NEU END
 
   _apName = apName;
   _apPassword = apPassword;
@@ -911,6 +935,8 @@ bool ESPAsync_WiFiManager::startConfigPortal(char const *apName, char const *apP
 
     if (stopConfigPortal)
     {
+      TimedOut = false;
+
       LOGERROR("Stop ConfigPortal");
 
       stopConfigPortal = false;
@@ -1030,10 +1056,11 @@ int ESPAsync_WiFiManager::connectWifi(const String& ssid, const String& pass)
 {
   // Add option if didn't input/update SSID/PW => Use the previous saved Credentials.
   // But update the Static/DHCP options if changed.
-  if ( (ssid != "") || ( (ssid == "") && (WiFi_SSID() != "") ) )
+  const auto wifiSSID = WiFi_SSID();
+  if ( (ssid != "") || ( (ssid == "") && (wifiSSID != "") ) )
   {
     //fix for auto connect racing issue to avoid resetSettings()
-    if (WiFi.status() == WL_CONNECTED)
+    if (WiFi.status() == WL_CONNECTED && ssid == wifiSSID)
     {
       LOGWARN(F("Already connected. Bailing out."));
       
@@ -1107,7 +1134,7 @@ wl_status_t ESPAsync_WiFiManager::waitForConnectResult()
 
     float waited = (millis() - startedAt);
 
-    LOGWARN1(F("Connected after waiting (s) :"), waited / 1000);
+    LOGWARN1(F("W: Connected after waiting (s) :"), waited / 1000);
     LOGWARN1(F("Local ip ="), WiFi.localIP());
 
     // Fix bug, connRes is sometimes not correct.   

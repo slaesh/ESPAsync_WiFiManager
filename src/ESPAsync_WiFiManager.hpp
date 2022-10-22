@@ -865,6 +865,9 @@ class ESPAsync_WiFiManager
     }
 
     ///////////////////////////
+
+    // test
+    const boolean   scannedSSIDSContains(String &ssid);
      
 #endif    
     
@@ -916,7 +919,7 @@ class ESPAsync_WiFiManager
     int                 *networkIndices;
     
     WiFiResult          *wifiSSIDs;
-    wifi_ssid_count_t   wifiSSIDCount;
+    wifi_ssid_count_t   wifiSSIDCount = 0;
     bool                wifiSSIDscan;
     
     // To enable dynamic/random channel
